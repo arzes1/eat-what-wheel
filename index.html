@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>滚动选择吃什么</title>
+<style>
+  body {
+    font-family: "微软雅黑", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 10px;
+    background: #222;
+    color: #fff;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+  }
+  h1 {
+    margin-bottom: 20px;
+  }
+  .wheel-container {
+    position: relative;
+    width: 320px;
+    height: 60px;
+    overflow: hidden;
+    border: 2px solid #4CAF50;
+    border-radius: 12px;
+    background: #333;
+  }
+  .wheel-strip {
+    display: flex;
+    white-space: nowrap;
+    user-select: none;
+    transform: translateX(0);
+  }
+  .item {
+    flex: 0 0 100px;
+    height: 60px;
+    line-height: 60px;
+    margin: 0 5px;
+    background: #4caf50;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 18px;
+    box-shadow: 0 0 8px #4caf50;
+  }
+  .indicator {
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 76px;
+    border: 3px solid #ffeb3b;
+    border-radius: 10px;
+    pointer-events: none;
+    box-shadow: 0 0 10px #ffeb3b;
+  }
+  button {
+    margin-top: 30px;
+    font-size: 20px;
+    padding: 10px 40px;
+    border: none;
+    border-radius: 10px;
+    background: #4caf50;
+    color: white;
+    cursor: pointer;
+    user-select: none;
+  }
+  button:active {
+    background: #388e3c;
+  }
+</style>
+</head>
+<body>
+
+<h1>今天吃什么？</h1>
+
+<div class="wheel-container">
+  <div class="wheel-strip" id="wheel-strip">
+    <!-- 菜品项目动态生成 -->
+  </div>
+  <div class="indicator"></div>
+</div>
+
+<button id="spin-btn">开始转动</button>
+
+<script>
+  const items = [
+    "红烧肉", "鱼香肉丝", "宫保鸡丁", "麻婆豆腐", "西红柿炒鸡蛋",
+    "糖醋排骨", "清蒸鲈鱼", "水煮牛肉", "回锅肉", "酸辣土豆丝",
+    "蒜蓉油麦菜", "干锅花菜", "黄焖鸡米饭", "炸酱面", "凉拌黄瓜"
+  ];
+
+  const wheelStrip = document.getElementById("wheel-strip");
+  const spinBtn = document.getElementById("spin-btn");
+
+  // 生成多个循环的菜品列表（方便循环滚动）
+  function createItems() {
+    wheelStrip.innerHTML = "";
+    for(let i = 0; i < 3; i++) { // 重复3遍
+      items.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.textContent = item;
+        wheelStrip.appendChild(div);
+      });
+    }
+  }
+
+  createItems();
+
+  let pos = 0;
+  let velocity = 0;
+  let animationFrameId = null;
+
+  function animate() {
+    pos += velocity;
+    if(pos > 0) pos -= wheelStrip.scrollWidth / 3;
+    if(pos < -wheelStrip.scrollWidth / 3) pos += wheelStrip.scrollWidth / 3;
+    wheelStrip.style.transform = `translateX(${pos}px)`;
+
+    if(velocity > 0) {
+      velocity *= 0.97; // 减速
+      if(velocity < 0.5) {
+        velocity = 0;
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+        showResult();
+      }
+    }
+    if(animationFrameId) {
+      animationFrameId = requestAnimationFrame(animate);
+    }
+  }
+
+  function showResult() {
+    // 计算当前停在中间的item索引
+    const itemWidth = 110; // 包含margin
+    const centerIndex = Math.round((-pos + (wheelStrip.parentElement.clientWidth / 2 - itemWidth/2)) / itemWidth) % items.length;
+    const index = (centerIndex + items.length) % items.length;
+    alert("你今天吃：" + items[index]);
+  }
+
+  spinBtn.addEventListener("click", () => {
+    if(animationFrameId) return; // 防止重复点
+    velocity = 30 + Math.random() * 10;
+    animationFrameId = requestAnimationFrame(animate);
+  });
+</script>
+
+</body>
+</html>
