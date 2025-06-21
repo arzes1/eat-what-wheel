@@ -1,156 +1,157 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>滚动选择吃什么</title>
-<style>
-  body {
-    font-family: "微软雅黑", sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 40px 10px;
-    background: #222;
-    color: #fff;
-    height: 100vh;
-    margin: 0;
-    overflow: hidden;
-  }
-  h1 {
-    margin-bottom: 20px;
-  }
-  .wheel-container {
-    position: relative;
-    width: 320px;
-    height: 60px;
-    overflow: hidden;
-    border: 2px solid #4CAF50;
-    border-radius: 12px;
-    background: #333;
-  }
-  .wheel-strip {
-    display: flex;
-    white-space: nowrap;
-    user-select: none;
-    transform: translateX(0);
-  }
-  .item {
-    flex: 0 0 100px;
-    height: 60px;
-    line-height: 60px;
-    margin: 0 5px;
-    background: #4caf50;
-    border-radius: 8px;
-    text-align: center;
-    font-weight: bold;
-    font-size: 18px;
-    box-shadow: 0 0 8px #4caf50;
-  }
-  .indicator {
-    position: absolute;
-    top: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 120px;
-    height: 76px;
-    border: 3px solid #ffeb3b;
-    border-radius: 10px;
-    pointer-events: none;
-    box-shadow: 0 0 10px #ffeb3b;
-  }
-  button {
-    margin-top: 30px;
-    font-size: 20px;
-    padding: 10px 40px;
-    border: none;
-    border-radius: 10px;
-    background: #4caf50;
-    color: white;
-    cursor: pointer;
-    user-select: none;
-  }
-  button:active {
-    background: #388e3c;
-  }
-</style>
+  <meta charset="UTF-8">
+  <title>今晚吃啥？抽签转轴版</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: '微软雅黑', sans-serif;
+      background: linear-gradient(135deg, #1f1f1f, #3a3a3a);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: #fff;
+    }
+
+    h1 {
+      margin: 20px 0;
+      font-size: 32px;
+      color: #FFD93D;
+      text-shadow: 0 0 8px #000;
+    }
+
+    .roller-container {
+      position: relative;
+      width: 260px;
+      height: 60px;
+      overflow: hidden;
+      border: 3px solid #FFD93D;
+      border-radius: 12px;
+      background: #222;
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    }
+
+    .roller {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+    }
+
+    .item {
+      height: 60px;
+      line-height: 60px;
+      font-size: 26px;
+      text-align: center;
+      border-bottom: 1px solid #333;
+      color: #fff;
+      text-shadow: 0 0 5px #000;
+    }
+
+    .highlight {
+      color: #FFD93D;
+      font-size: 28px;
+      text-shadow: 0 0 10px #FFD93D;
+    }
+
+    button {
+      margin-top: 30px;
+      padding: 12px 30px;
+      font-size: 18px;
+      background: #FFD93D;
+      color: #333;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+    }
+
+    button:active {
+      transform: scale(0.96);
+    }
+  </style>
 </head>
 <body>
 
-<h1>今天吃什么？</h1>
+  <h1>今晚吃啥？</h1>
 
-<div class="wheel-container">
-  <div class="wheel-strip" id="wheel-strip">
-    <!-- 菜品项目动态生成 -->
+  <div class="roller-container">
+    <div id="roller" class="roller"></div>
   </div>
-  <div class="indicator"></div>
-</div>
 
-<button id="spin-btn">开始转动</button>
+  <button onclick="startRoll()">开抽！</button>
 
-<script>
-  const items = [
-    "红烧肉", "鱼香肉丝", "宫保鸡丁", "麻婆豆腐", "西红柿炒鸡蛋",
-    "糖醋排骨", "清蒸鲈鱼", "水煮牛肉", "回锅肉", "酸辣土豆丝",
-    "蒜蓉油麦菜", "干锅花菜", "黄焖鸡米饭", "炸酱面", "凉拌黄瓜"
-  ];
+  <script>
+    const options = [
+      '西红柿炒鸡蛋','麻辣香锅','炸鸡','汉堡','米线','牛肉面',
+      '寿司','拉面','火锅','烤肉','酸菜鱼','螺蛳粉'
+    ];
 
-  const wheelStrip = document.getElementById("wheel-strip");
-  const spinBtn = document.getElementById("spin-btn");
+    const roller = document.getElementById('roller');
 
-  // 生成多个循环的菜品列表（方便循环滚动）
-  function createItems() {
-    wheelStrip.innerHTML = "";
-    for(let i = 0; i < 3; i++) { // 重复3遍
-      items.forEach(item => {
-        const div = document.createElement("div");
-        div.className = "item";
-        div.textContent = item;
-        wheelStrip.appendChild(div);
-      });
-    }
-  }
-
-  createItems();
-
-  let pos = 0;
-  let velocity = 0;
-  let animationFrameId = null;
-
-  function animate() {
-    pos += velocity;
-    if(pos > 0) pos -= wheelStrip.scrollWidth / 3;
-    if(pos < -wheelStrip.scrollWidth / 3) pos += wheelStrip.scrollWidth / 3;
-    wheelStrip.style.transform = `translateX(${pos}px)`;
-
-    if(velocity > 0) {
-      velocity *= 0.97; // 减速
-      if(velocity < 0.5) {
-        velocity = 0;
-        cancelAnimationFrame(animationFrameId);
-        animationFrameId = null;
-        showResult();
+    // 填充多行菜名，循环几遍
+    function populateRoller() {
+      let content = '';
+      for (let i = 0; i < 20; i++) {
+        const item = options[i % options.length];
+        content += `<div class="item">${item}</div>`;
       }
+      roller.innerHTML = content;
     }
-    if(animationFrameId) {
-      animationFrameId = requestAnimationFrame(animate);
+
+    populateRoller();
+
+    let rolling = false;
+
+    function startRoll() {
+      if (rolling) return;
+      rolling = true;
+
+      let pos = 0;
+      let speed = 25;
+      const targetIndex = Math.floor(Math.random() * options.length);
+      const totalHeight = 60 * options.length * 5; // 滚动5圈
+
+      function animate() {
+        pos += speed;
+        roller.style.top = `-${pos}px`;
+
+        if (pos >= totalHeight) {
+          pos = 0;
+        }
+
+        // 减速
+        if (speed > 2) {
+          speed *= 0.985;
+        } else {
+          // 最后定位到目标菜名位置
+          const finalPos = (targetIndex + 2) * 60; // +2为了让它正好停在第3行中央
+          roller.style.top = `-${finalPos}px`;
+
+          // 高亮中间项
+          const items = document.querySelectorAll('.item');
+          items.forEach((el, idx) => {
+            if (idx === targetIndex + 2) {
+              el.classList.add('highlight');
+            } else {
+              el.classList.remove('highlight');
+            }
+          });
+
+          rolling = false;
+          return;
+        }
+
+        requestAnimationFrame(animate);
+      }
+
+      animate();
     }
-  }
-
-  function showResult() {
-    // 计算当前停在中间的item索引
-    const itemWidth = 110; // 包含margin
-    const centerIndex = Math.round((-pos + (wheelStrip.parentElement.clientWidth / 2 - itemWidth/2)) / itemWidth) % items.length;
-    const index = (centerIndex + items.length) % items.length;
-    alert("你今天吃：" + items[index]);
-  }
-
-  spinBtn.addEventListener("click", () => {
-    if(animationFrameId) return; // 防止重复点
-    velocity = 30 + Math.random() * 10;
-    animationFrameId = requestAnimationFrame(animate);
-  });
-</script>
+  </script>
 
 </body>
 </html>
