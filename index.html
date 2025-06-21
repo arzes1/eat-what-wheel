@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <title>今晚吃啥？抽签转轴版</title>
+  <title>今晚吃啥？抽签转轴</title>
   <style>
     body {
       margin: 0;
@@ -27,7 +27,7 @@
     .roller-container {
       position: relative;
       width: 260px;
-      height: 60px;
+      height: 180px;
       overflow: hidden;
       border: 3px solid #FFD93D;
       border-radius: 12px;
@@ -45,17 +45,37 @@
     .item {
       height: 60px;
       line-height: 60px;
-      font-size: 26px;
+      font-size: 24px;
       text-align: center;
-      border-bottom: 1px solid #333;
-      color: #fff;
-      text-shadow: 0 0 5px #000;
+      color: #ccc;
+      text-shadow: 0 0 4px #000;
     }
 
     .highlight {
       color: #FFD93D;
       font-size: 28px;
       text-shadow: 0 0 10px #FFD93D;
+    }
+
+    .mask {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.05) 35%, rgba(0,0,0,0.05) 65%, rgba(0,0,0,0.7) 100%);
+    }
+
+    .middle-line {
+      position: absolute;
+      top: 60px;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      border-top: 2px solid #FFD93D;
+      border-bottom: 2px solid #FFD93D;
+      box-sizing: border-box;
     }
 
     button {
@@ -81,6 +101,8 @@
 
   <div class="roller-container">
     <div id="roller" class="roller"></div>
+    <div class="mask"></div>
+    <div class="middle-line"></div>
   </div>
 
   <button onclick="startRoll()">开抽！</button>
@@ -93,10 +115,9 @@
 
     const roller = document.getElementById('roller');
 
-    // 填充多行菜名，循环几遍
     function populateRoller() {
       let content = '';
-      for (let i = 0; i < 20; i++) {
+      for (let i = 0; i < 30; i++) {
         const item = options[i % options.length];
         content += `<div class="item">${item}</div>`;
       }
@@ -112,9 +133,8 @@
       rolling = true;
 
       let pos = 0;
-      let speed = 25;
-      const targetIndex = Math.floor(Math.random() * options.length);
-      const totalHeight = 60 * options.length * 5; // 滚动5圈
+      let speed = 35;
+      const totalHeight = 60 * options.length * 5;
 
       function animate() {
         pos += speed;
@@ -124,15 +144,18 @@
           pos = 0;
         }
 
-        // 减速
-        if (speed > 2) {
+        // 减速过程
+        if (speed > 1.5) {
           speed *= 0.985;
+          requestAnimationFrame(animate);
         } else {
-          // 最后定位到目标菜名位置
-          const finalPos = (targetIndex + 2) * 60; // +2为了让它正好停在第3行中央
+          // 停在目标位置
+          const targetIndex = Math.floor(Math.random() * options.length);
+          const finalPos = (targetIndex + 2) * 60; // 中央是第3行（0,1,2）
+
           roller.style.top = `-${finalPos}px`;
 
-          // 高亮中间项
+          // 高亮目标项
           const items = document.querySelectorAll('.item');
           items.forEach((el, idx) => {
             if (idx === targetIndex + 2) {
@@ -143,10 +166,7 @@
           });
 
           rolling = false;
-          return;
         }
-
-        requestAnimationFrame(animate);
       }
 
       animate();
